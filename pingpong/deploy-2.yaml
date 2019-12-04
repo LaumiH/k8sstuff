@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: busy2
+  name: busy2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busy2
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: busy2
+    spec:
+      volumes:
+      - name: pingpong-volume
+        hostPath:
+          path: /home/docker/pingpong-volume
+      containers:
+      - image: busybox
+        name: busybox
+        args:
+        - /bin/sh
+        - -c
+        - while true; do sleep 300; echo > /pingpong-vol/index.html; done
+        volumeMounts:
+        - mountPath: /pingpong-vol
+          name: pingpong-volume
+      - image: nginx:latest
+        name: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: pingpong-volume
+#        command: [ "/bin/sh", "-c", "sleep 30; touch /usr/share/nginx/html/index2.html; rm /usr/share/nginx/html/index.html && mv /usr/share/nginx/html/index2.html /usr/share/nginx/html/index.html" ]
+      - image: debian:latest
+        name: busy-2
+        volumeMounts:
+        - mountPath: /pingpong-vol
+          name: pingpong-volume
+        command: [ "/bin/sh", "-c", "apt-get update; apt-get install -y netcat-openbsd; $(NETCAT)" ]
+        env:
+          - name: NETCAT
+            valueFrom:
+              configMapKeyRef:
+                name: busy-config
+                key: SERVER
+        ports:
+        - containerPort: 8080
+          protocol: UDP

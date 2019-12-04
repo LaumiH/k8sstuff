@@ -1,0 +1,37 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: engine
+  namespace: default
+spec:
+  jobCleanUpPolicy: delete
+  monitoring: false
+  appinfo: 
+    # app namespace
+    appns: default
+    # to see app label, apply kubectl get pods --show-labels
+    applabel: 'app=busy1'
+    # supported kinds: deployment, statefulset
+    appkind: deployment 
+  chaosServiceAccount: busy
+  # running with custom ansible runner
+  #components:
+  #  runner:
+  #    image: "ansible-runner:v3"
+  #    imagePullPolicy: Never
+  experiments:
+#    - name: container-kill
+#      spec:
+#        components: 
+#        - name: TARGET_CONTAINER
+#          value: 'busy-1'
+#    - name: pod-delete
+#      spec:
+#        components:
+    - name: pod-network-loss
+      spec:
+        components:
+        - name: TARGET_CONTAINER
+          value: 'busy-1'
+        - name: NETWORK_INTERFACE
+          value: 'eth0'

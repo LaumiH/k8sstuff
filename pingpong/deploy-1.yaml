@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: busy1
+  name: busy1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busy1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: busy1
+    spec:
+      containers:
+        - image: debian
+          name: busy-1
+          command: [ "/bin/bash", "-c", "apt-get update; apt-get install -y netcat-openbsd; while true; do $(NETCAT); sleep 1; done" ]
+          #args:
+          #- /bin/sh
+          #- -c
+          #- while true; sleep 10; do $(COMMAND); done #> /dev/udp/127.0.0.1/3000  # hier ip des services einfügen, der für busy 2 die VIP bereitstellt
+          env:
+          - name: NETCAT
+            valueFrom:
+              configMapKeyRef:
+                name: busy-config
+                key: CLIENT
+          - name: COMMAND
+            valueFrom:
+              configMapKeyRef:
+                name: busy-config
+                key: COMMAND
+
+                
+# readiness: auf busy2 warten
+# prüfen ob nicht nur der service von busy2 erreichbar ist, sondern auch der container, und wenn nicht neustarten

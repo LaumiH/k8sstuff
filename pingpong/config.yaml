@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: busy-config
+  namespace: default
+data:
+  CLIENT: date | nc -u -w 0 10.110.133.248 8080
+  COMMAND: date
+  SERVER: nc -lku -p 8080 > /pingpong-vol/index.html    # -v sends additional X in UDP packets, see https://stackoverflow.com/questions/35485726/netcat-sending-extra-x-udp-packets/35486495#35486495
+  NGINX: nc -lv -c "echo -e 'HTTP/1.1 200 OK\r\n'; cat /home/index.html"
