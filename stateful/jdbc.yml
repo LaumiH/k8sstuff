@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: jdbc
+  name: jdbc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jdbc
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: jdbc
+    spec:
+      containers:
+      - image: jdbc:v2
+        imagePullPolicy: Never
+        name: 8-jre
+        resources:
+          limits:
+            cpu: 300m
+            memory: 200Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+status: {}
