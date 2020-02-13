@@ -31,7 +31,7 @@ The flaws of each steps are shown by chaos experiments using LitmusChaos, if ade
 | kill pod   | connection lost|
 || application fails, dataloss |
 
-**solution:** Create replicas of the database pod  
+**solution:** Create replicas of the database pod (or use some form of cache)  
 
 3. Multiple replicas of db cause crash
 
@@ -43,6 +43,7 @@ The flaws of each steps are shown by chaos experiments using LitmusChaos, if ade
 **solutions:** follow [this](https://kubernetes.io/docs/tasks/run-application/run-replicated-stateful-application/) example and set up 3 mysql pods in a statefulset, with one being the master and the others doing HA stuff to replicate the db
 
 4. Kill the master db pod
+
 |mysql deploy| jdbc deploy|
 |------------|------------|
 | kill mysql-0, which is the master db pod||
