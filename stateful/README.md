@@ -15,6 +15,7 @@ The flaws of each steps are shown by chaos experiments using LitmusChaos, if ade
 
 ## Stages
 1. Failed jdbc restart: table already exists
+
 |mysql deploy| jdbc deploy|
 |------------|------------|
 |kill pod    | error because db connection fails |
@@ -24,6 +25,7 @@ The flaws of each steps are shown by chaos experiments using LitmusChaos, if ade
 **solution:** query if table already exists at beginning of jdbc code
 
 2. DB unavailable when pod is down
+
 |mysql deploy| jdbc deploy|
 |------------|------------|
 | kill pod   | connection lost|
@@ -32,6 +34,7 @@ The flaws of each steps are shown by chaos experiments using LitmusChaos, if ade
 **solution:** Replicate the mysql pod to have a HA setup  
 
 3. Pod name changed
+
 |mysql deploy| jdbc deploy|
 |------------|------------|
 | pod name from scenario 1 is still available, try to access pod ||
@@ -40,6 +43,7 @@ The flaws of each steps are shown by chaos experiments using LitmusChaos, if ade
 **solution:** use a StatefulSet instead of a Deployment, because the set keeps pod names consistent
 
 4. Multiple replicas of db cause crash
+
 |mysql deploy| jdbc deploy|
 |------------|------------|
 | scale replicas up to 3 ||
