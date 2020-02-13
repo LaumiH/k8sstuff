@@ -31,18 +31,9 @@ The flaws of each steps are shown by chaos experiments using LitmusChaos, if ade
 | kill pod   | connection lost|
 || application fails, dataloss |
 
-**solution:** Replicate the mysql pod to have a HA setup  
+**solution:** Create replicas of the database pod  
 
-3. Pod name changed
-
-|mysql deploy| jdbc deploy|
-|------------|------------|
-| pod name from scenario 1 is still available, try to access pod ||
-| fails because pod name changes with reboot||
-
-**solution:** use a StatefulSet instead of a Deployment, because the set keeps pod names consistent
-
-4. Multiple replicas of db cause crash
+3. Multiple replicas of db cause crash
 
 |mysql deploy| jdbc deploy|
 |------------|------------|
@@ -51,4 +42,14 @@ The flaws of each steps are shown by chaos experiments using LitmusChaos, if ade
 
 **solutions:** follow [this](https://kubernetes.io/docs/tasks/run-application/run-replicated-stateful-application/) example and set up 3 mysql pods in a statefulset, with one being the master and the others doing HA stuff to replicate the db
 
+4. Kill the master db pod
+|mysql deploy| jdbc deploy|
+|------------|------------|
+| kill mysql-0, which is the master db pod||
+|||
 
+5. Network loss
+
+6. Network latency
+
+7. Network corruption
