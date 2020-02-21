@@ -31,15 +31,16 @@ public class Jdbc {
     public void readDatabase() throws Exception {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            //for running locally to access minikube mysql pod
+            //for running jdbc locally to access minikube mysql pod
             //conn = DriverManager.getConnection("jdbc:mysql://192.168.39.35:32060/test?" + "user=root&password=password");
 
-            //for running as a pod inside kubernetes
-            conn = DriverManager.getConnection("jdbc:mysql://mysql/test?" + "user=root&password=password");
+            //for running jdbc as a pod inside kubernetes alongside mysql pod
             //mysql is the deployment DNS name (through a ClusterIP=None service)
+            //I know, password as password is not how you're supposed to do it ^^
+            conn = DriverManager.getConnection("jdbc:mysql://mysql/test?" + "user=root&password=password");
             state = conn.createStatement();
 
-            //check if table already exists
+            //check if table already exists (scenario 2)
             DatabaseMetaData meta = conn.getMetaData();
             result = meta.getTables(null, null, "testdata", null);
             if(result.next()) {
@@ -48,13 +49,13 @@ public class Jdbc {
                 System.out.println("testdata truncated\n");
                 logger.info("testdata truncated because table was already filled\n");
             } else {
+                //table does not exist yet
                 state.execute("create table testdata(id int not null auto_increment, number int not null, primary key (id))");
                 System.out.println("testdata created\n");
                 logger.info("testdata created\n");
             }
 
-            //https://stackoverflow.com/questions/24378270/how-do-you-determine-if-an-insert-or-update-was-successful-using-java-and-mysql
-
+            //create 50 entries with random digits
             for(int i=0; i<50; i++) {
                 int random = (int)(Math.random() * 50 + 1);
                 prepState = conn.prepareStatement("insert into test.testdata values(default, ?)");
@@ -67,9 +68,9 @@ public class Jdbc {
             System.out.println("inserted 50 random numbers into testdata\n");
             logger.info("inserted 50 random numbers into testdata\n");
 
+            // constantly perform db operations
             while(true) {
-                // constantly perform db operations
-
+                
                 // clear buffers
                 state = state = conn.createStatement();
                 prepState = null;
@@ -79,13 +80,14 @@ public class Jdbc {
                 //result = state.executeQuery("select * from test.testdata");
                 //writeResultSet(result);
 
+                //random id
                 int id = (int)(Math.random() * 50 + 1);
-
+                //select entry with random id
                 prepState = conn.prepareStatement("select number from test.testdata where id=?");
                 prepState.setInt(1, id);
                 result = prepState.executeQuery();
-                //int before = result.getInt(1);
 
+                //substitute number of id with new random digit
                 int after = (int)(Math.random() * 50 + 1);
                 prepState = conn.prepareStatement("update test.testdata set number=? where id=?");
                 prepState.setInt(1, after);
@@ -109,6 +111,7 @@ public class Jdbc {
         }
     }
 
+    //writes table entries to stdout and log
     private void writeResultSet(ResultSet result) throws SQLException{
         while(result.next()) {
             int id = result.getInt("id");
