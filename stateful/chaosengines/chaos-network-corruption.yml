@@ -1,0 +1,37 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name:  network-corruption
+  namespace: mysql
+spec:
+  # It can be delete/retain
+  jobCleanUpPolicy: 'delete'
+  # It can be true/false
+  annotationCheck: 'true'
+  # It can be active/stop
+  engineState: 'active'
+  monitoring: false
+  appinfo: 
+    appns: 'default'
+    # FYI, To see app label, apply kubectl get pods --show-labels
+    applabel: 'app=mysql'
+    appkind: 'deployment'
+  chaosServiceAccount: pod-network-corruption-sa
+  experiments:
+    - name: pod-network-corruption
+      spec:
+        components:
+          env:
+            - name: ANSIBLE_STDOUT_CALLBACK
+              value: 'default'
+              #Container name where chaos has to be injected
+            - name: TARGET_CONTAINER
+              value: 'mysql' 
+              #Network interface inside target container              
+            - name: NETWORK_INTERFACE
+              value: 'eth0'
+            - name: TOTAL_CHAOS_DURATION 
+              value: 60000
+            - name: NETWORK_PACKET_CORRUPTION_PERCENTAGE 
+              value: 50
+
