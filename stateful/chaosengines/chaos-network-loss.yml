@@ -22,7 +22,7 @@ spec:
             - name: TOTAL_CHAOS_DURATION
               value: '60000'
             - name: TARGET_CONTAINER
-              value: 'nginx' 
+              value: 'mysql' 
             - name: NETWORK_INTERFACE
               value: 'eth0'                    
             - name: NETWORK_PACKET_LOSS_PERCENTAGE
