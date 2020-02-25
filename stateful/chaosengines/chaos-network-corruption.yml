@@ -31,7 +31,7 @@ spec:
             - name: NETWORK_INTERFACE
               value: 'eth0'
             - name: TOTAL_CHAOS_DURATION 
-              value: 60000
+              value: '60000'
             - name: NETWORK_PACKET_CORRUPTION_PERCENTAGE 
-              value: 50
+              value: '50'
 
