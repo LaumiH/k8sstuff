@@ -1,0 +1,5 @@
+# patch the mysql deploy to have 3 replicas
+KUBE_EDITOR='nano' kubectl edit deploy mysql
+kubectl patch deploy mysql -p '{"spec": {"replicas": 3}}' 
+
+kubectl apply -f chaosengine.yml
