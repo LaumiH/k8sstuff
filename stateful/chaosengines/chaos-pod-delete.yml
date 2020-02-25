@@ -1,0 +1,29 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: mysql-chaos
+  namespace: mysql
+spec:
+  annotationCheck: 'false'
+  engineState: 'active'
+  appinfo:
+    appns: 'mysql'
+    applabel: 'app=mysql'
+    appkind: 'deployment'
+  chaosServiceAccount: pod-delete-sa
+  # use retain to keep the job for debug
+  jobCleanUpPolicy: 'retain' 
+  experiments:
+    - name: pod-delete
+      spec:
+        components:
+          env:
+            # set chaos duration (in sec) as desired
+            - name: TOTAL_CHAOS_DURATION
+              value: '30'
+            # set chaos interval (in sec) as desired
+            - name: CHAOS_INTERVAL
+              value: '30'
+            # pod failures without '--force' & default terminationGracePeriodSeconds
+            - name: FORCE
+              value: 'false'
