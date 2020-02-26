@@ -17,9 +17,13 @@ spec:
         app: jdbc
     spec:
       containers:
-      - image: jdbc:v2
-        imagePullPolicy: Never
+      - image: localhost:5000/jdbc:latest
         name: 8-jre
+        env:
+        - name: db_url
+          value: "jdbc:mysql://mysql/?"
+        - name: check
+          value: "yes"
         resources:
           limits:
             cpu: 300m
