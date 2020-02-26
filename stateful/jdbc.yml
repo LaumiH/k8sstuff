@@ -19,6 +19,7 @@ spec:
       containers:
       - image: localhost:5000/jdbc:latest
         name: 8-jre
+        imagePullPolicy: Never
         env:
         - name: db_url
           value: "jdbc:mysql://mysql/?"
