@@ -2,4 +2,8 @@
 KUBE_EDITOR='nano' kubectl edit deploy mysql
 kubectl patch deploy mysql -p '{"spec": {"replicas": 3}}' 
 
-kubectl apply -f chaosengine.yml
+# watch the logs of a pod
+watch -n 5 "kubectl logs jdbc-565549bd9-j7nmv | tail"
+
+# read mysql db from mysql client pod
+kubectl run -n mysql mysql-client --image=mysql:5.7 -it --rm --restart=Never -- mysql -u root -h mysql -ppassword
