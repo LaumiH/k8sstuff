@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -7,6 +8,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.DatabaseMetaData;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Random;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
@@ -28,12 +32,13 @@ public class Jdbc {
     private FileHandler handler;
 
 
-    public void readDatabase() throws Exception {
+    public void databaseOperations() throws Exception {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             String db_url = System.getenv("db_url");    // dynamically modify the databas url for execution
             //jdbc:mysql://mysql/?
+            //db_url=jdbc:mysql://192.168.39.35:32060/?
             //for running jdbc as a pod inside kubernetes alongside mysql pod
             //mysql is the deployment DNS name (through a ClusterIP=None service)
 
@@ -44,40 +49,34 @@ public class Jdbc {
             String existence_check = System.getenv("check");
             if(existence_check.equals("yes")) {
                 //check if database already exists (szenario 2)
-                state.executeUpdate("create database if not exists test");
-                state.executeUpdate("use test");
+                state.executeUpdate("CREATE DATABASE IF NOT EXISTS students");
+                state.executeUpdate("USE students");
 
                 //check if table testdata already exists
-                result = conn.getMetaData().getTables(null, null, "testdata", null);
+                result = conn.getMetaData().getTables(null, null, "grades", null);
                 if(result.next()) {
                     //table already exists
-                    state.execute("truncate table testdata");
-                    logger.info("table 'testdata' truncated because table was already filled\n");
+                    state.execute("TRUNCATE TABLE grades");
+                    logger.info("table 'grades' truncated because table was already filled\n");
                 } else {
                     //table does not exist yet
-                    state.execute("create table testdata(id int not null auto_increment, number int not null, primary key (id))");
-                    logger.info("table 'testdata' created\n");
+                    state.execute("CREATE TABLE grades(student_id int not null auto_increment, grade decimal(2,1) not null, PRIMARY KEY (student_id))");
+                    logger.info("table 'grades' created\n");
                 }
             } else {
                 //create database and table
-                state.executeUpdate("create database test");
-                state.executeUpdate("use test");
-                state.execute("create table testdata(id int not null auto_increment, number int not null, primary key (id))");
-                logger.info("database 'test' and table 'testdata' created\n");
+                state.executeUpdate("CREATE DATABASE students");
+                state.executeUpdate("USE students");
+                state.execute("CREATE TABLE grades(student_id int not null auto_increment, grade decimal(2,1) not null, PRIMARY KEY (student_id))");
+                logger.info("database 'students' and table 'grades' created\n");
             }
 
-            //create 50 entries with random digits
-            for(int i=0; i<50; i++) {
-                int random = (int)(Math.random() * 50 + 1);
-                prepState = conn.prepareStatement("insert into test.testdata values(default, ?)");
-                prepState.setInt(1, random);
-                prepState.executeUpdate();
-                System.out.println("number " + random + " inserted");
-                sleep(100);
-            }
+            state.execute("ALTER TABLE grades AUTO_INCREMENT=757180");
 
-            System.out.println("inserted 50 random numbers into testdata\n");
-            logger.info("inserted 50 random numbers into testdata\n");
+            BigDecimal grades[] = {new BigDecimal("1.0"), new BigDecimal("1.3"), new BigDecimal("1.7"), new BigDecimal("2.0"),
+                    new BigDecimal("2.3"), new BigDecimal("2.7"), new BigDecimal("3.0"), new BigDecimal("3.3"), new BigDecimal("3.7"), new BigDecimal("4.0"), new BigDecimal("5.0")};
+            Random generator = new Random();
+            int randomIndex;
 
             // constantly perform db operations
             while(true) {
@@ -87,10 +86,38 @@ public class Jdbc {
                 prepState = null;
                 result = null;
 
-                // print whole testtable to log
-                //result = state.executeQuery("select * from test.testdata");
-                //writeResultSet(result);
+                //create 50 entries with random grades
+                for(int i=0; i<50; i++) {
+                    randomIndex = generator.nextInt(grades.length);
+                    prepState = conn.prepareStatement("INSERT INTO students.grades VALUES(default, ?)");
+                    prepState.setObject(1, grades[randomIndex]);
+                    prepState.executeUpdate();
+                }
 
+                logger.info("inserted 50 grades into students.grades\n");
+                result = state.executeQuery("SELECT * FROM students.grades");
+                writeResultSet(result);
+
+                for(int i=0; i<5; i++) {
+                    sleep(7000);
+                    result = state.executeQuery("SELECT * FROM students.grades ORDER BY RAND() LIMIT 1");
+                    result.next();
+                    int student_id = result.getInt("student_id");
+                    randomIndex = generator.nextInt(grades.length);
+                    prepState = conn.prepareStatement("UPDATE students.grades SET grade=? WHERE student_id=?");
+                    prepState.setObject(1, grades[randomIndex]);
+                    prepState.setInt(2, student_id);
+                    //logger.info("Executing query 'UPDATE students.grades SET grade=" + grades[randomIndex] + " WHERE student_id=" + student_id + "' ...");
+                    logger.info("Student " + student_id + ": grade corrected from " + result.getDouble("grade") + " to " + grades[randomIndex]);
+                    prepState.executeUpdate();
+                }
+                sleep(7000);
+
+                state.execute("TRUNCATE TABLE grades");
+                logger.info("table 'grades' truncated at end of loop.\n");
+
+
+                /*
                 //random id
                 int id = (int)(Math.random() * 50 + 1);
 
@@ -114,18 +141,18 @@ public class Jdbc {
                 prepState.executeUpdate();
 
                 logger.info("id " + id + " updated: " + before + " -> " + after + "\n\n");
-
-                // wait for 5 sec
-                sleep(5000);
+                 */
+                // wait for 10 sec
+                sleep(10000);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
         } finally {
-            state.execute("truncate table testdata");
-            System.out.println("testdata truncated\n");
-            logger.info("testdata truncated\n");
+            state.execute("TRUNCATE TABLE grades");
+            System.out.println("grades truncated\n");
+            logger.info("grades truncated\n");
             close();
         }
     }
@@ -133,10 +160,10 @@ public class Jdbc {
     //writes table entries to stdout and log
     private void writeResultSet(ResultSet result) throws SQLException{
         while(result.next()) {
-            int id = result.getInt("id");
-            int number = result.getInt("number");
-            System.out.println(id + ": " + number);
-            logger.info(id + ": " + number + "\n");
+            int student_id = result.getInt("student_id");
+            double grade = result.getDouble("grade");
+            //logger.info(student_id + ": " + grade + "\n");
+            System.out.println(student_id + ": " + grade + "\n");
         }
     }
 
