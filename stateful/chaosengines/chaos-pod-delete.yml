@@ -11,8 +11,7 @@ spec:
     applabel: 'app=mysql'
     appkind: 'deployment'
   chaosServiceAccount: pod-delete-sa
-  # use retain to keep the job for debug
-  jobCleanUpPolicy: 'delete' 
+  jobCleanUpPolicy: 'retain' 
   experiments:
     - name: pod-delete
       spec:
@@ -20,10 +19,10 @@ spec:
           env:
             # set chaos duration (in sec) as desired
             - name: TOTAL_CHAOS_DURATION
-              value: '30000'
+              value: '30'
             # set chaos interval (in sec) as desired
             - name: CHAOS_INTERVAL
-              value: '30000'
+              value: '10'
             # pod failures without '--force' & default terminationGracePeriodSeconds
             - name: FORCE
-              value: 'false'
+              value: 'true'
